@@ -1,4 +1,5 @@
 ---
+debuglevel: "DEBUG"
 
 backup1:
   From: "/home/zoer/Elixir"
