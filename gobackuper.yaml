@@ -1,0 +1,18 @@
+---
+
+backup1:
+  From: "/home/zoer/Elixir"
+  To: "/home/zoer/Backups"
+  OutFileName: "ElixirBackup"
+  Crypt: "false"
+  DateTime: "false"
+  Ssh: "false"
+
+
+backup2:
+  From: "/home/zoer/AsmProjects"
+  To: "/home/zoer/Backups"
+  OutFileName: "AsmBackup"
+  Crypt: "false"
+  DateTime: "false"
+  Ssh: "false"
