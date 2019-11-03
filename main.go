@@ -12,65 +12,71 @@ import (
 )
 
 type Config struct {
-	Debuglevel string
-	//B struct {
-	//	RenamedC int   `yaml:"c"`
-	//	D        []int `yaml:",flow"`
-	//}
-}
+	// Общие параметры приложения
+	LogLevel       string `LogLevel`
+	ThreadsCount   string `ThreadsCount`
+	DateTimeFormat string `DateTimeFormat`
 
-//var data = `
-//debuglevel: DEBUG
-//`
+	// Параметры каждого из Бекапов
+	From        string `From`
+	To          string `To`
+	OutFileName string `OutFileName`
+	Crypt       string `Crypt`
+	DateTime    string `DateTime`
+	Ssh         string `Ssh`
+}
 
 func main() {
 
 	const configFileName = "gobackuper.yaml"
 
 	var (
-		debugLevel = "DEBUG"
+		debugLevel = "DEBUG" // "DEBUG", "INFO"
+		configs    []Config
 	)
 
 	// Выставить параметры логирования
 	SetLog(log.DebugLevel)
 
 	// Получить параметры из конфигурационного файла
-	getConfigParameters(configFileName, debugLevel)
+	getConfigParameters(configFileName, &configs)
+
+	// Перевыставить уровень логирования на основе конфига
+	if configs[0].LogLevel == "INFO" {
+		debugLevel = "INFO"
+		SetLog(log.InfoLevel)
+	}
+	log.Infof("Log level: '%s'", debugLevel)
 
 }
 
 /* Получить параметры из конфигурационного YAML файла */
-func getConfigParameters(configFileName string, debugLevel string) {
+func getConfigParameters(configFileName string, configs *[]Config) {
 
-	config := Config{}
-	var err error
-
-	// Читать файл
+	// Открыть файл
 	file, err := os.Open(configFileName)
 	if err != nil {
-		log.Fatal("Fail to open config file '%s': %v", configFileName, err)
-	}
-	defer file.Close()
-
-	data, err := ioutil.ReadAll(file)
-	if err != nil {
-		log.Fatal("Fail to read config file '%s': %v", configFileName, err)
+		log.Fatal("Fail to open configs file '%s': %v", configFileName, err)
 	}
 
-	err = yaml.Unmarshal(data, &config)
+	// Прочитать весь файл
+	yamlData, err := ioutil.ReadAll(file)
 	if err != nil {
-		log.Fatal("Fail to unmarshal config file '%s': %v", configFileName, err)
+		log.Fatal("Fail to read configs file '%s': %v", configFileName, err)
+	}
+
+	// Десериализовать
+	err = yaml.Unmarshal(yamlData, &configs)
+	if err != nil {
+		log.Fatal("Fail to unmarshal configs file '%s': %v", configFileName, err)
 		os.Exit(1)
 	}
+	log.Infof("=--> configs:\n%v\n\n", *configs)
 
-	log.Infof("=--> config:\n%v\n\n", config)
-
-	//debugLevel = config.Section("").Key("DEBUG_LEVEL").String()
-	//if debugLevel == "INFO" {
-	//	SetLog(log.InfoLevel)
-	//}
-	//log.Debugf("Debug level: %s", debugLevel)
-
+	err = file.Close()
+	if err != nil {
+		log.Errorf("Fail to close configs file '%s': %v", configFileName, err)
+	}
 }
 
 /* Выставить параметры логирования */

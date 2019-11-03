@@ -1,16 +1,21 @@
 ---
-debuglevel: "DEBUG"
+-
+  # Общие параметры
+  LogLevel: "INFO"
+  # Используемое количество потоков при компресии
+  ThreadsCount: 3
 
-backup1:
+  # Формат добавляемый к имени архива даты и времени
+  DateTimeFormat: yyyyMMdd-HHmm
+
   From: "/home/zoer/Elixir"
   To: "/home/zoer/Backups"
   OutFileName: "ElixirBackup"
   Crypt: "false"
-  DateTime: "false"
+  DateTime: "true"
   Ssh: "false"
 
-
-backup2:
+-
   From: "/home/zoer/AsmProjects"
   To: "/home/zoer/Backups"
   OutFileName: "AsmBackup"
