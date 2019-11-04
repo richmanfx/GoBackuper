@@ -54,84 +54,85 @@ func main() {
 /* Поместить директории в TAR архивы */
 func toTar(config *Config) {
 
-	// Открыть директорию
-	dir, err := os.Open(config.Backups[0].From)
-	if err != nil {
-		log.Fatalln(err)
-		os.Exit(1)
-	}
-	defer func() {
-		err = dir.Close()
+	// Бежать по конфигам бекапов
+	for _, backup := range config.Backups {
+
+		// Открыть директорию
+		dir, err := os.Open(backup.From)
+		if err != nil {
+			log.Fatalln(err)
+			os.Exit(1)
+		}
+
+		// Все файлы в директории
+		files, err := dir.Readdir(0)
 		if err != nil {
 			log.Errorln(err)
 		}
-	}()
 
-	// Все файлы в директории
-	files, err := dir.Readdir(0)
-	if err != nil {
-		log.Errorln(err)
-	}
-
-	// Создать TAR файл
-	tarFile, err := os.Create(config.Backups[0].OutFileName + ".tar")
-	if err != nil {
-		log.Fatalln(err)
-		os.Exit(1)
-	}
-	defer func() {
-		err = tarFile.Close()
+		// Создать TAR файл
+		tarFile, err := os.Create(backup.OutFileName + ".tar")
 		if err != nil {
-			log.Errorln(err)
+			log.Fatalln(err)
+			os.Exit(1)
 		}
-	}()
 
-	var fileWriter io.WriteCloser = tarFile
-	tarFileWriter := tar.NewWriter(fileWriter)
-	defer func() {
+		var fileWriter io.WriteCloser = tarFile
+		tarFileWriter := tar.NewWriter(fileWriter)
+
+		for _, fileInfo := range files {
+
+			// Если файл - директория
+			if fileInfo.IsDir() {
+				log.Infof("Есть директория: %s", fileInfo.Name())
+				continue
+
+			}
+
+			file, err := os.Open(dir.Name() + string(filepath.Separator) + fileInfo.Name())
+			if err != nil {
+				log.Errorln(err)
+			}
+
+			// Подготовка TAR заголовков
+			header := new(tar.Header)
+			header.Name = file.Name()
+			header.Size = fileInfo.Size()
+			header.Mode = int64(fileInfo.Mode())
+			header.ModTime = fileInfo.ModTime()
+
+			err = tarFileWriter.WriteHeader(header)
+			if err != nil {
+				log.Errorln(err)
+			}
+
+			_, err = io.Copy(tarFileWriter, file)
+			if err != nil {
+				log.Errorln(err)
+			}
+
+			err = file.Close()
+			if err != nil {
+				log.Errorln(err)
+			}
+		}
+
 		err = tarFileWriter.Close()
 		if err != nil {
 			log.Errorln(err)
 		}
-	}()
 
-	for _, fileInfo := range files {
-
-		// Если файл - директория
-		if fileInfo.IsDir() {
-			log.Infof("Есть директория: %s", fileInfo.Name())
-			continue
-
-		}
-
-		file, err := os.Open(dir.Name() + string(filepath.Separator) + fileInfo.Name())
+		err = tarFile.Close()
 		if err != nil {
 			log.Errorln(err)
 		}
 
-		// Подготовка TAR заголовков
-		header := new(tar.Header)
-		header.Name = file.Name()
-		header.Size = fileInfo.Size()
-		header.Mode = int64(fileInfo.Mode())
-		header.ModTime = fileInfo.ModTime()
-
-		err = tarFileWriter.WriteHeader(header)
+		err = dir.Close()
 		if err != nil {
 			log.Errorln(err)
 		}
 
-		_, err = io.Copy(tarFileWriter, file)
-		if err != nil {
-			log.Errorln(err)
-		}
-
-		err = file.Close()
-		if err != nil {
-			log.Errorln(err)
-		}
 	}
-
 }
 
 /* Получить параметры из конфигурационного YAML файла */

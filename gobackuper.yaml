@@ -19,7 +19,7 @@ Backups:
 
   - From: /home/zoer/AsmProjects
     To: /home/zoer/Backups
-    OutFileName: ""
+    OutFileName: AsmProjects
     Crypt: false
     DateTime: true
     Ssh: ""
