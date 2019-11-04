@@ -5,10 +5,13 @@
 package main
 
 import (
+	"archive/tar"
 	log "github.com/Sirupsen/logrus"
 	"gopkg.in/yaml.v3"
+	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 // Параметры каждого из Бекапов
@@ -43,6 +46,92 @@ func main() {
 	// Получить параметры из конфигурационного файла
 	getConfigParameters(configFileName, &config)
 
+	// В TAR архив
+	toTar(&config)
+
+}
+
+/* Поместить директории в TAR архивы */
+func toTar(config *Config) {
+
+	// Открыть директорию
+	dir, err := os.Open(config.Backups[0].From)
+	if err != nil {
+		log.Fatalln(err)
+		os.Exit(1)
+	}
+	defer func() {
+		err = dir.Close()
+		if err != nil {
+			log.Errorln(err)
+		}
+	}()
+
+	// Все файлы в директории
+	files, err := dir.Readdir(0)
+	if err != nil {
+		log.Errorln(err)
+	}
+
+	// Создать TAR файл
+	tarFile, err := os.Create(config.Backups[0].OutFileName + ".tar")
+	if err != nil {
+		log.Fatalln(err)
+		os.Exit(1)
+	}
+	defer func() {
+		err = tarFile.Close()
+		if err != nil {
+			log.Errorln(err)
+		}
+	}()
+
+	var fileWriter io.WriteCloser = tarFile
+	tarFileWriter := tar.NewWriter(fileWriter)
+	defer func() {
+		err = tarFileWriter.Close()
+		if err != nil {
+			log.Errorln(err)
+		}
+	}()
+
+	for _, fileInfo := range files {
+
+		// Если файл - директория
+		if fileInfo.IsDir() {
+			log.Infof("Есть директория: %s", fileInfo.Name())
+			continue
+
+		}
+
+		file, err := os.Open(dir.Name() + string(filepath.Separator) + fileInfo.Name())
+		if err != nil {
+			log.Errorln(err)
+		}
+
+		// Подготовка TAR заголовков
+		header := new(tar.Header)
+		header.Name = file.Name()
+		header.Size = fileInfo.Size()
+		header.Mode = int64(fileInfo.Mode())
+		header.ModTime = fileInfo.ModTime()
+
+		err = tarFileWriter.WriteHeader(header)
+		if err != nil {
+			log.Errorln(err)
+		}
+
+		_, err = io.Copy(tarFileWriter, file)
+		if err != nil {
+			log.Errorln(err)
+		}
+
+		err = file.Close()
+		if err != nil {
+			log.Errorln(err)
+		}
+	}
+
 }
 
 /* Получить параметры из конфигурационного YAML файла */
@@ -53,6 +142,9 @@ func getConfigParameters(configFileName string, config *Config) {
 	if err != nil {
 		log.Fatal("Fail to open config file '%s': %v", configFileName, err)
 	}
+	defer func() {
+		err = file.Close()
+	}()
 
 	// Прочитать весь файл
 	yamlData, err := ioutil.ReadAll(file)
