@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Параметры каждого из Бекапов
@@ -57,81 +58,114 @@ func toTar(config *Config) {
 	// Бежать по конфигам бекапов
 	for _, backup := range config.Backups {
 
-		// Открыть директорию
-		dir, err := os.Open(backup.From)
-		if err != nil {
-			log.Fatalln(err)
-			os.Exit(1)
+		parentDir := ""
+		parentDirs := strings.Split(backup.From, string(filepath.Separator))
+		currentDir := parentDirs[len(parentDirs)-1:][0] // Последний оставляем
+		parentDirs = parentDirs[1:len(parentDirs)]      // Первый удаляем
+		parentDirs = parentDirs[:len(parentDirs)-1]     // Последний удаляем
+		log.Infof("parentDirs: %v", parentDirs)
+		for _, dir := range parentDirs {
+			parentDir = parentDir + string(filepath.Separator) + dir
 		}
 
-		// Все файлы в директории
-		files, err := dir.Readdir(0)
+		addToTarArchive(backup.OutFileName+".tar", currentDir, parentDir)
+	}
+}
+
+func addToTarArchive(tarFileName string, currentDir string, parentDir string) {
+
+	entry := parentDir + string(filepath.Separator) + currentDir
+	//entry := currentDir
+
+	// Открыть директорию
+	dir, err := os.Open(entry)
+	if err != nil {
+		log.Fatalln(err)
+		os.Exit(1)
+	}
+
+	// Все файлы в директории
+	files, err := dir.Readdir(0)
+	if err != nil {
+		log.Errorln(err)
+	}
+
+	// Создать TAR файл
+	tarFile, err := os.Create(tarFileName)
+	if err != nil {
+		log.Fatalln(err)
+		os.Exit(1)
+	}
+
+	var fileWriter io.WriteCloser = tarFile
+	tarFileWriter := tar.NewWriter(fileWriter)
+
+	for _, fileInfo := range files {
+
+		// Если файл - директория
+		if fileInfo.IsDir() {
+			log.Infof("Есть директория: %s", fileInfo.Name())
+
+			// Файлы-дети в директории
+			//File[] children = file.listFiles();
+			subDir, err := os.Open(parentDir + string(filepath.Separator) + currentDir + string(filepath.Separator) + fileInfo.Name())
+			if err != nil {
+				log.Fatalln(err)
+				os.Exit(1)
+			}
+			subFiles, err := subDir.Readdir(0)
+			if len(subFiles) != 0 {
+				for _, subFile := range subFiles {
+					currentSubDirs := strings.Split(subFile.Name(), string(filepath.Separator))
+					currentSubDir := currentSubDirs[len(currentSubDirs)-1:][0] // Последний оставляем
+					addToTarArchive(tarFileName, currentSubDir, entry)
+				}
+			}
+			//continue
+		}
+
+		file, err := os.Open(dir.Name() + string(filepath.Separator) + fileInfo.Name())
 		if err != nil {
 			log.Errorln(err)
 		}
 
-		// Создать TAR файл
-		tarFile, err := os.Create(backup.OutFileName + ".tar")
-		if err != nil {
-			log.Fatalln(err)
-			os.Exit(1)
-		}
+		// Подготовка TAR заголовков
+		header := new(tar.Header)
+		header.Name = file.Name()
+		header.Size = fileInfo.Size()
+		header.Mode = int64(fileInfo.Mode())
+		header.ModTime = fileInfo.ModTime()
+		header.Format = tar.FormatPAX
 
-		var fileWriter io.WriteCloser = tarFile
-		tarFileWriter := tar.NewWriter(fileWriter)
-
-		for _, fileInfo := range files {
-
-			// Если файл - директория
-			if fileInfo.IsDir() {
-				log.Infof("Есть директория: %s", fileInfo.Name())
-				continue
-
-			}
-
-			file, err := os.Open(dir.Name() + string(filepath.Separator) + fileInfo.Name())
-			if err != nil {
-				log.Errorln(err)
-			}
-
-			// Подготовка TAR заголовков
-			header := new(tar.Header)
-			header.Name = file.Name()
-			header.Size = fileInfo.Size()
-			header.Mode = int64(fileInfo.Mode())
-			header.ModTime = fileInfo.ModTime()
-
-			err = tarFileWriter.WriteHeader(header)
-			if err != nil {
-				log.Errorln(err)
-			}
-
-			_, err = io.Copy(tarFileWriter, file)
-			if err != nil {
-				log.Errorln(err)
-			}
-
-			err = file.Close()
-			if err != nil {
-				log.Errorln(err)
-			}
-		}
-
-		err = tarFileWriter.Close()
+		err = tarFileWriter.WriteHeader(header)
 		if err != nil {
 			log.Errorln(err)
 		}
 
-		err = tarFile.Close()
+		_, err = io.Copy(tarFileWriter, file)
 		if err != nil {
 			log.Errorln(err)
 		}
 
-		err = dir.Close()
+		err = file.Close()
 		if err != nil {
 			log.Errorln(err)
 		}
+	}
 
+	err = tarFileWriter.Close()
+	if err != nil {
+		log.Errorln(err)
+	}
+
+	err = tarFile.Close()
+	if err != nil {
+		log.Errorln(err)
+	}
+
+	err = dir.Close()
+	if err != nil {
+		log.Errorln(err)
 	}
 }
 
