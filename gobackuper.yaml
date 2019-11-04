@@ -1,24 +1,44 @@
 ---
--
-  # Общие параметры
-  LogLevel: "INFO"
-  # Используемое количество потоков при компресии
-  ThreadsCount: 3
+#-
+#  # Общие параметры
+#  LogLevel: "INFO"
+#  # Используемое количество потоков при компресии
+#  ThreadsCount: 3
+#
+#  # Формат добавляемый к имени архива даты и времени
+#  DateTimeFormat: yyyyMMdd-HHmm
+#
+#  From: "/home/zoer/Elixir"
+#  To: "/home/zoer/Backups"
+#  OutFileName: "ElixirBackup"
+#  Crypt: "false"
+#  DateTime: "true"
+#  Ssh: "false"
+#
+#-
+#  From: "/home/zoer/AsmProjects"
+#  To: "/home/zoer/Backups"
+#  OutFileName: "AsmBackup"
+#  Crypt: "false"
+#  DateTime: "false"
+#  Ssh: "false"
 
-  # Формат добавляемый к имени архива даты и времени
-  DateTimeFormat: yyyyMMdd-HHmm
 
-  From: "/home/zoer/Elixir"
-  To: "/home/zoer/Backups"
-  OutFileName: "ElixirBackup"
-  Crypt: "false"
-  DateTime: "true"
-  Ssh: "false"
+LogLevel: INFO
+ThreadsCount: 3
+DateTimeFormat: yyyyMMdd-HHmm
 
--
-  From: "/home/zoer/AsmProjects"
-  To: "/home/zoer/Backups"
-  OutFileName: "AsmBackup"
-  Crypt: "false"
-  DateTime: "false"
-  Ssh: "false"
+backups:
+  - From: /home/zoer/Elixir
+    To: /home/zoer/Backups
+    OutFileName: ElixirBackup
+    Crypt: false
+    DateTime: true
+    Ssh: test.com.ru
+
+  - From: /home/zoer/AsmProjects
+    To: /home/zoer/Backups
+    OutFileName: ""
+    Crypt: false
+    DateTime: true
+    Ssh: ""
