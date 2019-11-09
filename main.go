@@ -60,110 +60,108 @@ func toTar(config *Config) {
 
 		parentDir := ""
 		parentDirs := strings.Split(backup.From, string(filepath.Separator))
-		currentDir := parentDirs[len(parentDirs)-1:][0] // Последний оставляем
-		parentDirs = parentDirs[1:len(parentDirs)]      // Первый удаляем
-		parentDirs = parentDirs[:len(parentDirs)-1]     // Последний удаляем
+		parentDirs = parentDirs[1 : len(parentDirs)-1] // Первый и последний удаляем
 		log.Infof("parentDirs: %v", parentDirs)
 		for _, dir := range parentDirs {
 			parentDir = parentDir + string(filepath.Separator) + dir
 		}
 
-		addToTarArchive(backup.OutFileName+".tar", currentDir, parentDir)
+		file, err := os.Open(backup.From)
+		errLogAndExit(err)
+
+		// Создать TAR файл
+		tarFile, err := os.Create(backup.OutFileName + ".tar")
+		errLogAndExit(err)
+
+		// Создать Writer
+		var fileWriter io.WriteCloser = tarFile
+		tarFileWriter := tar.NewWriter(fileWriter)
+
+		addToTarArchive(tarFileWriter, file, parentDir)
+
+		err = tarFileWriter.Close()
+		errLog(err)
+
+		err = tarFile.Close()
+		errLog(err)
 	}
 }
 
-func addToTarArchive(tarFileName string, currentDir string, parentDir string) {
+func addToTarArchive(tarFile *tar.Writer, fileOrDirToArchive *os.File, parentDir string) {
 
-	entry := parentDir + string(filepath.Separator) + currentDir
-	//entry := currentDir
+	entry := fileOrDirToArchive.Name()
 
-	// Открыть директорию
-	dir, err := os.Open(entry)
-	if err != nil {
-		log.Fatalln(err)
-		os.Exit(1)
-	}
+	fileInfo, err := os.Stat(entry)
+	errLog(err)
 
-	// Все файлы в директории
-	files, err := dir.Readdir(0)
-	if err != nil {
-		log.Errorln(err)
-	}
+	if fileInfo.Mode().IsRegular() {
+		// Если файл
 
-	// Создать TAR файл
-	tarFile, err := os.Create(tarFileName)
-	if err != nil {
-		log.Fatalln(err)
-		os.Exit(1)
-	}
+		file, err := os.Open(entry)
+		errLog(err)
 
-	var fileWriter io.WriteCloser = tarFile
-	tarFileWriter := tar.NewWriter(fileWriter)
-
-	for _, fileInfo := range files {
-
-		// Если файл - директория
-		if fileInfo.IsDir() {
-			log.Infof("Есть директория: %s", fileInfo.Name())
-
-			// Файлы-дети в директории
-			//File[] children = file.listFiles();
-			subDir, err := os.Open(parentDir + string(filepath.Separator) + currentDir + string(filepath.Separator) + fileInfo.Name())
-			if err != nil {
-				log.Fatalln(err)
-				os.Exit(1)
-			}
-			subFiles, err := subDir.Readdir(0)
-			if len(subFiles) != 0 {
-				for _, subFile := range subFiles {
-					currentSubDirs := strings.Split(subFile.Name(), string(filepath.Separator))
-					currentSubDir := currentSubDirs[len(currentSubDirs)-1:][0] // Последний оставляем
-					addToTarArchive(tarFileName, currentSubDir, entry)
-				}
-			}
-			//continue
-		}
-
-		file, err := os.Open(dir.Name() + string(filepath.Separator) + fileInfo.Name())
-		if err != nil {
-			log.Errorln(err)
-		}
-
-		// Подготовка TAR заголовков
+		// Подготовить TAR заголовок
 		header := new(tar.Header)
-		header.Name = file.Name()
+		header.Name, err = filepath.Rel(parentDir, file.Name()) // Исключаем полный путь
 		header.Size = fileInfo.Size()
 		header.Mode = int64(fileInfo.Mode())
 		header.ModTime = fileInfo.ModTime()
 		header.Format = tar.FormatPAX
 
-		err = tarFileWriter.WriteHeader(header)
-		if err != nil {
-			log.Errorln(err)
-		}
+		// Добавить TAR зоголовок
+		err = tarFile.WriteHeader(header)
+		errLog(err)
 
-		_, err = io.Copy(tarFileWriter, file)
-		if err != nil {
-			log.Errorln(err)
-		}
+		// Добавить файл
+		_, err = io.Copy(tarFile, file)
+		errLog(err)
 
+		// Закрыть файл
 		err = file.Close()
-		if err != nil {
-			log.Errorln(err)
+		errLog(err)
+
+	} else if fileInfo.Mode().IsDir() {
+		// Если директория
+
+		// Открыть директорию
+		dir, err := os.Open(entry)
+		errLogAndExit(err)
+
+		// Все файлы-дети в директории
+		fileInfos, err := dir.Readdir(0)
+		errLog(err)
+
+		if len(fileInfos) != 0 {
+			// Непустая директория
+			for _, fileInfo := range fileInfos {
+
+				file, err := os.Open(entry + string(filepath.Separator) + fileInfo.Name())
+				errLogAndExit(err)
+
+				addToTarArchive(tarFile, file, parentDir)
+			}
 		}
-	}
 
-	err = tarFileWriter.Close()
+		// Закрыть
+		err = dir.Close()
+		errLog(err)
+
+	} else {
+		// Ни файл, ни директория ٩(｡•́‿•̀｡)۶
+		log.Errorf("Not directory and not file - '{}'", fileOrDirToArchive)
+	}
+}
+
+/* Обработать фатальную ошибку и выйти */
+func errLogAndExit(err error) {
 	if err != nil {
-		log.Errorln(err)
+		log.Fatalln(err)
+		os.Exit(1)
 	}
+}
 
-	err = tarFile.Close()
-	if err != nil {
-		log.Errorln(err)
-	}
-
-	err = dir.Close()
+/* Логировать ошибку */
+func errLog(err error) {
 	if err != nil {
 		log.Errorln(err)
 	}

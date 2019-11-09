@@ -23,3 +23,17 @@ Backups:
     Crypt: false
     DateTime: true
     Ssh: ""
+
+  - From: /home/zoer/IdeaProjects/Tomato
+    To: /home/zoer/Backups
+    OutFileName: Tomato
+    Crypt: false
+    DateTime: true
+    Ssh: ""
+
+  - From: /home/zoer/Документы
+    To: /home/zoer/Backups
+    OutFileName: Документы
+    Crypt: false
+    DateTime: true
+    Ssh: ""
