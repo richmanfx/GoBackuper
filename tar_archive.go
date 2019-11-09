@@ -7,41 +7,58 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
+
+var wg sync.WaitGroup
 
 /* Поместить директории в TAR архивы */
 func toTar(config *Config) {
 
 	// Бежать по конфигам бекапов
 	for _, backup := range config.Backups {
-
-		parentDir := ""
-		parentDirs := strings.Split(backup.From, string(filepath.Separator))
-		parentDirs = parentDirs[1 : len(parentDirs)-1] // Первый и последний удаляем
-		log.Infof("parentDirs: %v", parentDirs)
-		for _, dir := range parentDirs {
-			parentDir = parentDir + string(filepath.Separator) + dir
-		}
-
-		file, err := os.Open(backup.From)
-		errLogAndExit(err)
-
-		// Создать TAR файл
-		tarFile, err := os.Create(backup.OutFileName + ".tar")
-		errLogAndExit(err)
-
-		// Создать Writer
-		var fileWriter io.WriteCloser = tarFile
-		tarFileWriter := tar.NewWriter(fileWriter)
-
-		addToTarArchive(tarFileWriter, file, parentDir)
-
-		err = tarFileWriter.Close()
-		errLog(err)
-
-		err = tarFile.Close()
-		errLog(err)
+		wg.Add(1) // Новая горутина
+		go backupToTar(backup)
 	}
+
+	wg.Wait() // Ждать окончания работы всех горутин
+}
+
+func backupToTar(backup Backup) {
+
+	defer wg.Done() // После окончания работы функции счётчик именьшить на 1
+
+	parentDir := ""
+	parentDirs := strings.Split(backup.From, string(filepath.Separator))
+	parentDirs = parentDirs[1 : len(parentDirs)-1] // Первый и последний удаляем
+	log.Debugf("parentDirs: %v", parentDirs)
+
+	// Собрать в кучу
+	for _, dir := range parentDirs {
+		parentDir = parentDir + string(filepath.Separator) + dir
+	}
+
+	file, err := os.Open(backup.From)
+	errLogAndExit(err)
+
+	// Создать TAR файл
+	tarFile, err := os.Create(backup.OutFileName + ".tar")
+	errLogAndExit(err)
+
+	// Создать Writer
+	var fileWriter io.WriteCloser = tarFile
+	tarFileWriter := tar.NewWriter(fileWriter)
+
+	addToTarArchive(tarFileWriter, file, parentDir)
+
+	err = tarFileWriter.Close()
+	errLog(err)
+
+	err = tarFile.Close()
+	errLog(err)
+
+	err = file.Close()
+	errLog(err)
 }
 
 func addToTarArchive(tarFile *tar.Writer, fileOrDirToArchive *os.File, parentDir string) {
