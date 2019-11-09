@@ -10,26 +10,26 @@ DateTimeFormat: yyyyMMdd-HHmm
 
 # Конфигурации бекапов
 Backups:
-  - From: /home/zoer/Elixir
-    To: /home/zoer/Backups
-    OutFileName: ElixirBackup
-    Crypt: false
-    DateTime: true
-    Ssh: test.com.ru
-
-  - From: /home/zoer/AsmProjects
-    To: /home/zoer/Backups
-    OutFileName: AsmProjects
-    Crypt: false
-    DateTime: true
-    Ssh: ""
-
-  - From: /home/zoer/IdeaProjects/Tomato
-    To: /home/zoer/Backups
-    OutFileName: Tomato
-    Crypt: false
-    DateTime: true
-    Ssh: ""
+#  - From: /home/zoer/Elixir
+#    To: /home/zoer/Backups
+#    OutFileName: ElixirBackup
+#    Crypt: false
+#    DateTime: true
+#    Ssh: test.com.ru
+#
+#  - From: /home/zoer/AsmProjects
+#    To: /home/zoer/Backups
+#    OutFileName: AsmProjects
+#    Crypt: false
+#    DateTime: true
+#    Ssh: ""
+#
+#  - From: /home/zoer/IdeaProjects/Tomato
+#    To: /home/zoer/Backups
+#    OutFileName: Tomato
+#    Crypt: false
+#    DateTime: true
+#    Ssh: ""
 
   - From: /home/zoer/Документы
     To: /home/zoer/Backups
