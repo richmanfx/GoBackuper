@@ -10,45 +10,45 @@ import (
 
 func toLZMA2(config *Config) {
 
-	//pipeReader, pipeWriter := io.Pipe()
-	//defer func() {
-	//	err := pipeReader.Close()
-	//	errLog(err)
-	//}()
+	// Бежать по конфигам бекапов
+	for _, backup := range config.Backups {
+		wg.Add(1) // Новая горутина
+		go toLZMACompressOneFile(backup.OutFileName)
+	}
+	wg.Wait() // Ждать окончания работы всех горутин
+}
 
-	// Source file
-	inFile, err := os.Open(config.Backups[0].OutFileName + ".tar")
-	errLog(err)
-	//myDefer(inFile)
+func toLZMACompressOneFile(outFileName string) {
+
+	log.Infof("Start compress: '%s'", outFileName)
+
+	// После окончания работы функции счётчик именьшить на 1
+	defer wg.Done()
+
+	// Входной TAR файл
+	inFile, err := os.Open(outFileName + ".tar")
+	errLogAndExit(err)
 	reader := bufio.NewReader(inFile)
 
-	// Destination file
-	outFile, err := os.Create(config.Backups[0].OutFileName + ".tar.lzma")
-	//myDefer(outFile)
-
-	var fileWriter io.WriteCloser = outFile
+	// Выходной LZMA файл
+	outFile, err := os.Create(outFileName + ".tar.lzma")
+	fileWriter := bufio.NewWriter(outFile)
 	lzmaFileWriter, err := lzma.NewWriter(fileWriter)
-
-	//bufioWriter := bufio.NewWriter(outFile)
-	//writer, err := lzma.NewWriter2(bufioWriter)
-
 	errLogAndExit(err)
 
-	count, err := io.Copy(lzmaFileWriter, reader)
-	errLog(err)
-	log.Infof("Скописровано: %d", count)
+	// Компресиия
+	_, err = io.Copy(lzmaFileWriter, reader)
+	errLogAndExit(err)
 
-	//_ = bufioWriter.Flush()
+	// Всё очистить и закрыть
+	_ = fileWriter.Flush()
 	_ = lzmaFileWriter.Close()
-	_ = fileWriter.Close()
 	_ = outFile.Close()
 	_ = inFile.Close()
 
-}
+	// Удалить TAR файл
+	err = os.Remove(outFileName + ".tar")
+	errLog(err)
 
-func myDefer(file *os.File) {
-	defer func() {
-		err := file.Close()
-		errLog(err)
-	}()
+	log.Infof("Ending compress: '%s'", outFileName)
 }

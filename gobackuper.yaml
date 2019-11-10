@@ -1,9 +1,6 @@
 ---
 # Уровень логирования - INFO или DEBUG
-LogLevel: DEBUG
-
-# Используемое количество потоков при компресии
-ThreadsCount: 3
+LogLevel: INFO
 
 # Формат добавляемый к имени архива даты и времени
 DateTimeFormat: yyyyMMdd-HHmm
@@ -45,9 +42,9 @@ Backups:
   DateTime: true
   Ssh: ""
 
-- From: /home/zoer/Видео
-  To: /home/zoer/Backups
-  OutFileName: Видео
-  Crypt: false
-  DateTime: true
-  Ssh: ""
+#- From: /home/zoer/Видео
+#  To: /home/zoer/Backups
+#  OutFileName: Видео
+#  Crypt: false
+#  DateTime: true
+#  Ssh: ""

@@ -20,7 +20,6 @@ func toTar(config *Config) {
 		wg.Add(1) // Новая горутина
 		go backupToTar(backup)
 	}
-
 	wg.Wait() // Ждать окончания работы всех горутин
 }
 
@@ -31,7 +30,6 @@ func backupToTar(backup Backup) {
 	parentDir := ""
 	parentDirs := strings.Split(backup.From, string(filepath.Separator))
 	parentDirs = parentDirs[1 : len(parentDirs)-1] // Первый и последний удаляем
-	log.Debugf("parentDirs: %v", parentDirs)
 
 	// Собрать в кучу
 	for _, dir := range parentDirs {
@@ -42,7 +40,9 @@ func backupToTar(backup Backup) {
 	errLogAndExit(err)
 
 	// Создать TAR файл
-	tarFile, err := os.Create(backup.OutFileName + ".tar")
+	tarFileName := backup.OutFileName + ".tar"
+	log.Infof("Create '%s'", tarFileName)
+	tarFile, err := os.Create(tarFileName)
 	errLogAndExit(err)
 
 	// Создать Writer
@@ -64,6 +64,7 @@ func backupToTar(backup Backup) {
 func addToTarArchive(tarFile *tar.Writer, fileOrDirToArchive *os.File, parentDir string) {
 
 	entry := fileOrDirToArchive.Name()
+	log.Infof(entry)
 
 	fileInfo, err := os.Stat(entry)
 	errLog(err)
