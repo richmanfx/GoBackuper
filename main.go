@@ -44,6 +44,9 @@ func main() {
 	// В TAR архив
 	toTar(&config)
 
+	// Сжать LZMA2
+	toLZMA2(&config)
+
 }
 
 /* Обработать фатальную ошибку и выйти */

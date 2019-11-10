@@ -31,23 +31,23 @@ Backups:
 #    DateTime: true
 #    Ssh: ""
 
-  - From: /home/zoer/Документы
-    To: /home/zoer/Backups
-    OutFileName: Документы
-    Crypt: false
-    DateTime: true
-    Ssh: ""
+- From: /home/zoer/Документы
+  To: /home/zoer/Backups
+  OutFileName: Документы
+  Crypt: false
+  DateTime: true
+  Ssh: ""
 
-  - From: /home/zoer/Музыка
-    To: /home/zoer/Backups
-    OutFileName: Музыка
-    Crypt: false
-    DateTime: true
-    Ssh: ""
+- From: /home/zoer/Музыка
+  To: /home/zoer/Backups
+  OutFileName: Музыка
+  Crypt: false
+  DateTime: true
+  Ssh: ""
 
-  - From: /home/zoer/Видео
-    To: /home/zoer/Backups
-    OutFileName: Видео
-    Crypt: false
-    DateTime: true
-    Ssh: ""
+- From: /home/zoer/Видео
+  To: /home/zoer/Backups
+  OutFileName: Видео
+  Crypt: false
+  DateTime: true
+  Ssh: ""
