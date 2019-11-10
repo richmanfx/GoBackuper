@@ -1,0 +1,50 @@
+---
+# Уровень логирования - INFO или DEBUG
+LogLevel: INFO
+
+# Формат добавляемый к имени архива даты и времени
+DateTimeFormat: yyyyMMdd-HHmm
+
+# Конфигурации бекапов
+Backups:
+#  - From: /home/zoer/Elixir
+#    To: /home/zoer/Backups
+#    OutFileName: ElixirBackup
+#    Crypt: false
+#    DateTime: true
+#    Ssh: test.com.ru
+#
+#  - From: /home/zoer/AsmProjects
+#    To: /home/zoer/Backups
+#    OutFileName: AsmProjects
+#    Crypt: false
+#    DateTime: true
+#    Ssh: ""
+#
+#  - From: /home/zoer/IdeaProjects/Tomato
+#    To: /home/zoer/Backups
+#    OutFileName: Tomato
+#    Crypt: false
+#    DateTime: true
+#    Ssh: ""
+
+- From: /home/zoer/Документы
+  To: /home/zoer/Backups
+  OutFileName: Документы
+  Crypt: false
+  DateTime: true
+  Ssh: ""
+
+- From: /home/zoer/Музыка
+  To: /home/zoer/Backups
+  OutFileName: Музыка
+  Crypt: false
+  DateTime: true
+  Ssh: ""
+
+#- From: /home/zoer/Видео
+#  To: /home/zoer/Backups
+#  OutFileName: Видео
+#  Crypt: false
+#  DateTime: true
+#  Ssh: ""
