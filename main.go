@@ -21,10 +21,12 @@ type Backup struct {
 
 // Конфиг полностью
 type Config struct {
-	LogLevel       string   `yaml:"LogLevel"`
-	ThreadsCount   int      `yaml:"ThreadsCount"`
-	DateTimeFormat string   `yaml:"DateTimeFormat"`
-	Backups        []Backup `yaml:"Backups"`
+	LogLevel             string   `yaml:"LogLevel"`
+	CompressionLevel     int      `yaml:"CompressionLevel"`
+	SelectiveCompression bool     `yaml:"SelectiveCompression"`
+	ThreadsCount         int      `yaml:"ThreadsCount"`
+	DateTimeFormat       string   `yaml:"DateTimeFormat"`
+	Backups              []Backup `yaml:"Backups"`
 }
 
 func main() {
@@ -41,18 +43,11 @@ func main() {
 	// Получить параметры из конфигурационного файла
 	getConfigParameters(configFileName, &config)
 
-	// В TAR архив
-	//toTar(&config)
-	//toTar2()
-
-	// Сжать LZMA2
-	//toLZMA2(&config)
+	// В ZIP
+	toZip(&config)
 
 	// Перенести LZMA архив в директорию хранения
 	//moveArchive(&config)
-
-	// В ZIP
-	toZip(&config)
 
 }
 

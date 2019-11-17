@@ -12,22 +12,22 @@ func toZip(config *Config) {
 	// Бежать по конфигам бекапов
 	for _, backup := range config.Backups {
 		wg.Add(1) // Новая горутина
-		go dirToZip(backup)
+		go dirToZip(backup, config.CompressionLevel, config.SelectiveCompression)
 	}
 	wg.Wait() // Ждать окончания работы всех горутин
 
 }
 
-func dirToZip(backup Backup) {
+func dirToZip(backup Backup, compressionLevel int, selectiveCompression bool) {
 
 	var source []string
 	defer wg.Done() // После окончания работы функции счётчик именьшить на 1
 
 	zipArchive := archiver.Zip{
-		CompressionLevel:       7, // TODO: Вынести в конфиг
+		CompressionLevel:       compressionLevel,
 		OverwriteExisting:      true,
 		MkdirAll:               false,
-		SelectiveCompression:   false, // TODO: Вынести в конфиг
+		SelectiveCompression:   selectiveCompression,
 		ImplicitTopLevelFolder: false,
 		ContinueOnError:        true,
 	}
