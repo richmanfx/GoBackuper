@@ -42,13 +42,17 @@ func main() {
 	getConfigParameters(configFileName, &config)
 
 	// В TAR архив
-	toTar(&config)
+	//toTar(&config)
+	//toTar2()
 
 	// Сжать LZMA2
-	toLZMA2(&config)
+	//toLZMA2(&config)
 
 	// Перенести LZMA архив в директорию хранения
 	//moveArchive(&config)
+
+	// В ZIP
+	toZip(&config)
 
 }
 
