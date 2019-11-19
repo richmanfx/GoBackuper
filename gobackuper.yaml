@@ -2,56 +2,22 @@
 # Уровень логирования - INFO или DEBUG
 LogLevel: INFO
 
-# Уровень компрессии
-CompressionLevel: 7
-
-# Выборочная компрессия - не сжимать уже сжатые файлы
-SelectiveCompression: false
-
 # Формат добавляемый к имени архива даты и времени
-DateTimeFormat: yyyyMMdd-HHmm
+DateTimeFormat: 20060102_1504
 
 # Конфигурации бекапов
 Backups:
 
-#  - From: /home/zoer/Elixir
-#    To: /home/zoer/Backups
-#    OutFileName: ElixirBackup
+#  - From: C:\Users\zoer\Documents
+#    To: C:\Users\zoer\Backups
+#    OutFileName: Документы
 #    Crypt: false
 #    DateTime: true
 #    Ssh: test.com.ru
 
-#  - From: /home/zoer/AsmProjects
-#    To: /home/zoer/Backups
-#    OutFileName: AsmProjects
-#    Crypt: false
-#    DateTime: true
-#    Ssh: ""
-#
-#  - From: /home/zoer/IdeaProjects/Tomato
-#    To: /home/zoer/Backups
-#    OutFileName: Tomato
-#    Crypt: false
-#    DateTime: true
-#    Ssh: ""
-
-- From: /home/zoer/Документы
-  To: /home/zoer/Backups
-  OutFileName: Документы
-  Crypt: false
-  DateTime: true
-  Ssh: ""
-
-- From: /home/zoer/Музыка
-  To: /home/zoer/Backups
-  OutFileName: Музыка
-  Crypt: false
-  DateTime: true
-  Ssh: ""
-
-- From: /home/zoer/Видео
-  To: /home/zoer/Backups
-  OutFileName: Видео
-  Crypt: false
-  DateTime: true
-  Ssh: ""
+  - From: C:\Users\zoer\go
+    To: C:\Users\zoer\Backups
+    OutFileName: GO
+    Crypt: false
+    DateTime: true
+    Ssh: test.com.ru
