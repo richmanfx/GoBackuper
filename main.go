@@ -47,7 +47,29 @@ func main() {
 	toZip(&config)
 
 	// Перенести LZMA архив в директорию хранения
-	//moveArchive(&config)
+	moveArchive(&config)
+
+}
+
+func moveArchive(config *Config) {
+
+	for _, backup := range config.Backups {
+
+		var oldLocation string
+
+		if backup.DateTime == false {
+			oldLocation = backup.OutFileName + ".zip"
+		} else if backup.DateTime == true {
+			dataTimeSuffix := getSuffix(config.DateTimeFormat)
+			oldLocation = backup.OutFileName + "-" + dataTimeSuffix + ".zip"
+		}
+
+		newLocation := backup.To + "\\" + oldLocation
+
+		err := os.Rename(oldLocation, newLocation)
+		errLogAndExit(err)
+
+	}
 
 }
 

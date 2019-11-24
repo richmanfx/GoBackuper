@@ -35,10 +35,10 @@ func dirToZip(backup Backup, compressionLevel int, selectiveCompression bool, fo
 
 	source = append(source, backup.From)
 	if backup.DateTime == false {
-		destination = backup.To + "/" + backup.OutFileName + ".zip"
+		destination = backup.OutFileName + ".zip"
 	} else if backup.DateTime == true {
 		dataTimeSuffix := getSuffix(format)
-		destination = backup.To + "/" + backup.OutFileName + "-" + dataTimeSuffix + ".zip"
+		destination = backup.OutFileName + "-" + dataTimeSuffix + ".zip"
 	}
 
 	err := zipArchive.Archive(source, destination)
